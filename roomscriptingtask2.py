@@ -2,33 +2,34 @@ import urllib.request
 import re
 import time
 import socket
+import sys
 
 portnumber = 0
 numtotal = 0
 newport = 0
+rhost=sys.argv[1]
 
 def getport():
-	with urllib.request.urlopen('http://10.10.235.109:3010/') as url:
+	with urllib.request.urlopen('http://'+rhost+':3010/') as url:
 		urltext = url.read()
 		urltextd = urltext.decode("utf-8")
 	return re.findall('(?<=">).*(?=<\/a)', urltextd)
 
-while 1:
+while portnumber != 1337:
 	portreg = getport()
 	portnumber = int(portreg[0])
 	time.sleep(0.5)
-	if portnumber == 1337:
-		break
 print("Started.")
 while 1:
 	try:
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		s.connect(("10.10.235.109", portnumber))		
-		request = "GET / HTTP/1.1\r\nHost:10.10.235.109\r\n\r\n"
+		s.connect((rhost, portnumber))
+		request = "GET / HTTP/1.1\r\nHost:%s\r\n\r\n" % rhost
 		s.send(request.encode())
+		time.sleep(0.5)
 		data = s.recv(1024)
 		datarepr = repr(data)
-		dataregex = re.sub(r'([\\])+', '', datarepr)
+		dataregex = re.sub(r'([\\\'])+', '', datarepr)
 		dataregex = re.findall('(?<=nrn).*', dataregex)
 		datatrim = dataregex[0].split()
 		operator = datatrim[0]
@@ -52,7 +53,6 @@ while 1:
 			time.sleep(0.5)
 	except:
 		s.close()
-		print("exception")
 		time.sleep(0.5)
 		pass
 
